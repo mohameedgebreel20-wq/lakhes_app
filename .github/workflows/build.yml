@@ -19,14 +19,25 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
           channel: 'stable'
+          cache: true
 
       - name: Create and Configure Android
         run: |
           if [ ! -d "android" ]; then
             flutter create --platforms=android .
           fi
+          # ترقية compileSdk و targetSdk إلى 35 لحل تعارض record_android
+          find android -name "build.gradle*" -exec sed -i 's/compileSdkVersion = flutter.compileSdkVersion/compileSdkVersion = 35/g' {} + 2>/dev/null || true
+          find android -name "build.gradle*" -exec sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 35/g' {} + 2>/dev/null || true
+          find android -name "build.gradle*" -exec sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 35/g' {} + 2>/dev/null || true
+          find android -name "build.gradle*" -exec sed -i 's/compileSdk flutter.compileSdkVersion/compileSdk 35/g' {} + 2>/dev/null || true
+
+          find android -name "build.gradle*" -exec sed -i 's/targetSdkVersion = flutter.targetSdkVersion/targetSdkVersion = 35/g' {} + 2>/dev/null || true
+          find android -name "build.gradle*" -exec sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 35/g' {} + 2>/dev/null || true
+          find android -name "build.gradle*" -exec sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 35/g' {} + 2>/dev/null || true
+
+          # ضبط الحد الأدنى minSdk إلى 23
           find android -name "build.gradle*" -exec sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 23/g' {} + 2>/dev/null || true
           find android -name "build.gradle*" -exec sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 23/g' {} + 2>/dev/null || true
           find android -name "build.gradle*" -exec sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/g' {} + 2>/dev/null || true
@@ -42,4 +53,3 @@ jobs:
         with:
           name: Lakhis-App
           path: build/app/outputs/flutter-apk/app-debug.apk
-          
