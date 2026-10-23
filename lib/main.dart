@@ -1,11 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:record/record.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -62,20 +60,26 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadTrials() async {
     final prefs = await SharedPreferences.getInstance();
     final used = prefs.getInt("used_trials") ?? 0;
-    setState(() {
-      _remainingTrials = (3 - used).clamp(0, 3);
-    });
+    if (mounted) {
+      setState(() {
+        _remainingTrials = (3 - used).clamp(0, 3);
+      });
+    }
   }
 
   Future<void> _handleRecording() async {
     if (_remainingTrials <= 0) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+      if (mounted) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+      }
       return;
     }
 
     if (_isRecording) {
       final path = await _audioRecorder.stop();
-      setState(() => _isRecording = false);
+      if (mounted) {
+        setState(() => _isRecording = false);
+      }
       if (path != null && mounted) {
         _startProcessing(path);
       }
@@ -85,14 +89,18 @@ class _HomeScreenState extends State<HomeScreen> {
         final dir = await getTemporaryDirectory();
         final filePath = "${dir.path}/record_${DateTime.now().millisecondsSinceEpoch}.m4a";
         await _audioRecorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: filePath);
-        setState(() => _isRecording = true);
+        if (mounted) {
+          setState(() => _isRecording = true);
+        }
       }
     }
   }
 
   Future<void> _pickAudioFile() async {
     if (_remainingTrials <= 0) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+      if (mounted) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const PaywallScreen()));
+      }
       return;
     }
 
@@ -132,10 +140,12 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.account_balance_wallet_outlined),
             tooltip: "محفظتي",
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const WalletScreen()),
-            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const WalletScreen()),
+              );
+            },
           ),
         ],
       ),
@@ -171,8 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 40),
               GestureDetector(
                 onTap: _handleRecording,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
+                child: Container(
                   width: 170,
                   height: 170,
                   decoration: BoxDecoration(
@@ -183,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: (_isRecording ? Colors.redAccent : const Color(0xFF6C63FF)).withOpacity(0.35),
                         blurRadius: 30,
                         spreadRadius: 10,
-                      )
+                      ),
                     ],
                   ),
                   child: Icon(
@@ -342,7 +351,7 @@ class ResultScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("س${i + 1}:${quiz[i]['question']}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text("س${i + 1}: ${quiz[i]['question']}", style: const TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       ...((quiz[i]['options'] as List).map((opt) => Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -388,7 +397,7 @@ class PaywallScreen extends StatelessWidget {
                 backgroundColor: const Color(0xFF6C63FF),
               ),
               child: const Text("تفعيل الاشتراك", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            )
+            ),
           ],
         ),
       ),
@@ -397,5 +406,53 @@ class PaywallScreen extends StatelessWidget {
 
   Widget _buildCard(String title, String price) {
     return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(price),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      ),
+    );
+  }
+}
 
-      
+class WalletScreen extends StatelessWidget {
+  const WalletScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("محفظة الأرباح")),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: const Color(0xFF6C63FF),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Column(
+                children: [
+                  Text("الرصيد المتاح للسحب", style: TextStyle(color: Colors.white70)),
+                  SizedBox(height: 8),
+                  Text("0.00 ج.م", style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Card(
+              child: ListTile(
+                leading: Icon(Icons.account_balance_wallet, color: Colors.orange),
+                title: Text("أورنج كاش (Orange Cash)"),
+                subtitle: Text("0127****746 • مربوطة بنجاح"),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
