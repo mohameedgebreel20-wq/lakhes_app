@@ -1,4 +1,4 @@
-name: lakhes_app
+name: lakhis_app
 description: تطبيق لخص لتفريغ وتلخيص المحاضرات
 publish_to: 'none'
 version: 1.0.0+1
@@ -18,6 +18,9 @@ dependencies:
   permission_handler: ^11.3.1
   http: ^1.2.1
   shared_preferences: ^2.2.3
+
+dependency_overrides:
+  record_platform_interface: 1.5.0
 
 dev_dependencies:
   flutter_test:
