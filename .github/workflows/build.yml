@@ -22,11 +22,14 @@ jobs:
           flutter-version: '3.24.0'
           channel: 'stable'
 
-      - name: Create Android Structure
+      - name: Create and Configure Android
         run: |
           if [ ! -d "android" ]; then
             flutter create --platforms=android .
           fi
+          find android -name "build.gradle*" -exec sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 23/g' {} + 2>/dev/null || true
+          find android -name "build.gradle*" -exec sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 23/g' {} + 2>/dev/null || true
+          find android -name "build.gradle*" -exec sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/g' {} + 2>/dev/null || true
 
       - name: Get Dependencies
         run: flutter pub get
@@ -37,6 +40,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Lakhis-App
+          name: LakhesــApp
           path: build/app/outputs/flutter-apk/app-release.apk
           
