@@ -34,12 +34,12 @@ jobs:
       - name: Get Dependencies
         run: flutter pub get
 
-      - name: Build Release APK
-        run: flutter build apk --release --no-shrink
+      - name: Build Debug APK
+        run: flutter build apk --debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: LakhesــApp
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: Lakhis-App
+          path: build/app/outputs/flutter-apk/app-debug.apk
           
